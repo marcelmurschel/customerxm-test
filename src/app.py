@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 # Load the dataset
-data = pd.read_csv("customerxm-app/src/reviews-0-2402-test.csv")
+data = pd.read_csv("reviews-0-2402-test.csv")
 
 data['date'] = pd.to_datetime(data['date'])
 
