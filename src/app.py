@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 # Load the dataset
-data = pd.read_csv("vocapp/reviews-0-2402-test.csv")
+data = pd.read_csv("customerxm-app/src/reviews-0-2402-test.csv")
 
 data['date'] = pd.to_datetime(data['date'])
 
@@ -20,7 +20,7 @@ server = app.server
 app.layout = html.Div([
 
     html.Div([
-        html.Img(src='/assets/vcx_kunde.png', style={'width': '100%', 'border-radius': '15px'})
+        html.Img(src='assets/vcx_kunde.png', style={'width': '100%', 'border-radius': '15px'})
     ]),
 
     html.Div([
