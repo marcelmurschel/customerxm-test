@@ -13,13 +13,12 @@ data['date'] = pd.to_datetime(data['date'])
 # List of topics
 topics = ['Kundenservice', 'Beratung', 'Freundlichkeit', 'Fahrzeugübergabe', 'Zubehör', 'Werkstattservice', 'Preis-Leistungs-Verhältnis', 'Sauberkeit', 'Zuverlässigkeit', 'Terminvereinbarung', 'Lieferzeit', 'Garantieabwicklung', 'Reparaturqualität', 'Auswahl']
 
-# Initialize the app
-app = dash.Dash(__name__)
-server = app.server
+
 
 # External stylesheet for Roboto Condensed font
-app.css.append_css({"external_url": "https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap"})
-app.css.append_css({"external_url": "/assets/custom_styles.css"})
+external_stylesheets = ['https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap', '/assets/custom_styles.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
 
 app.layout = html.Div([
 
