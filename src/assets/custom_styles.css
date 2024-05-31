@@ -1,0 +1,33 @@
+.DateInput_input, .DateInput_input_1 {
+    font-size: 14px;  /*or whatever size you would like to have*/
+    width: 80%; 
+  }
+
+  .DateInput {
+    width: 40%;
+
+/* Custom styles for the DatePickerRange calendar popup */
+.DateRangePicker__withBorder .DateRangePicker_picker {
+    background-color: yellow;
+}
+
+.DateRangePicker_picker__directionLeft {
+    background-color: yellow;
+}
+
+/* Additional styles to ensure the calendar elements are styled appropriately */
+.CalendarDay__default, .CalendarDay__default:hover {
+    background-color: yellow;
+    border: 1px solid #e4e7e7;
+    color: #484848;
+}
+
+.CalendarDay__default.CalendarDay__selected, .CalendarDay__default.CalendarDay__selected:hover {
+    background-color: #ffcc00; /* Highlight the selected day in a different shade of yellow */
+    border-color: #ffcc00;
+    color: #fff;
+}
+
+.CalendarMonth_caption {
+    color: #484848; /* Make sure the month caption is readable */
+}

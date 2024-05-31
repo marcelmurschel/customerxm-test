@@ -19,6 +19,7 @@ server = app.server
 
 # External stylesheet for Roboto Condensed font
 app.css.append_css({"external_url": "https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap"})
+app.css.append_css({"external_url": "/assets/custom_styles.css"})
 
 app.layout = html.Div([
 
@@ -28,50 +29,107 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.Label('Standort auswählen:', style={'fontFamily': 'Roboto Condensed'}),
+            html.Div('Standort auswählen:', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '20px', 'position': 'absolute', 'top': '20px', 'left': '20px', }),
             dcc.Dropdown(
                 id='standort-filter',
                 options=[{'label': name, 'value': name} for name in data['name'].unique()],
                 value=data['name'].unique().tolist(),
                 multi=True
             )
-        ], style={'width': '85%', 'display': 'inline-block'}),
+        ], style={'width': '85%', 'display': 'inline-block', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '40px 10px 10px 10px', 'marginRight': '20px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)', 'position': 'relative'}),
 
         html.Div([
-            html.H2('Anzahl Interviews', style={'fontFamily': 'Roboto Condensed'}),
-            html.P(id='respondent-count', style={'fontSize': '24px', 'fontFamily': 'Roboto Condensed'})
-        ], style={'width': '15%', 'display': 'inline-block', 'verticalAlign': 'top'})
-    ], style={'display': 'flex', 'marginTop': '20px', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}),
-
-    html.Div([
-        html.Div([
-            dcc.Graph(id='average-satisfaction-gauge')
-        ], style={'width': '30%', 'display': 'inline-block', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '10px', 'marginRight': '40px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}),
-
-        html.Div([
-            dcc.Graph(id='satisfaction-trend')
-        ], style={'width': '70%', 'display': 'inline-block', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'})
+            html.Div('Anzahl Interviews', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '20px', 'position': 'absolute', 'top': '20px', 'left': '20px'}),
+            html.P(id='respondent-count', style={'fontSize': '24px', 'fontFamily': 'Roboto Condensed', 'position': 'absolute', 'top': '60px', 'left': '20px'})
+        ], style={'width': '25%', 'display': 'inline-block', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '40px 10px 10px 10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)', 'position': 'relative'})
     ], style={'display': 'flex', 'marginTop': '20px'}),
-    
+
     html.Div([
-        html.Label('Adjust Threshold Percentage:', style={'fontFamily': 'Roboto Condensed'}),
+        html.Div([
+            html.Div('Status', style={
+                'fontFamily': 'Roboto Condensed', 
+                'fontWeight': 'bold', 
+                'fontSize': '24px',  # Increased font size
+                'position': 'absolute', 
+                'top': '20px',  # Adjusted to align to the top
+                'left': '20px',  # Adjusted to align to the left
+            }),
+            html.Div(id='average-rating', style={
+                'fontFamily': 'Roboto Condensed', 
+                'fontSize': '30px',  # Large font size
+                'textAlign': 'left',
+                'marginBottom': '10px',
+                'position': 'relative',
+                'top': '10px',  # Adjust this as necessary
+                'left': '10px',  # Adjust this as necessary
+            }),
+            dcc.Graph(id='average-satisfaction-bar', config={'displayModeBar': False})
+        ], style={
+            'width': '30%', 
+            'display': 'inline-block', 
+            'backgroundColor': 'white', 
+            'borderRadius': '10px', 
+            'border': '1px solid #ccc', 
+            'padding': '35px 10px 10px 10px',  # Adjusted padding to make space for the title and average rating
+            'marginRight': '20px', 
+            'boxShadow': '0 2px 4px rgba(0,0,0,0.1)', 
+            'position': 'relative'
+        }),
+
+        html.Div([
+            html.Div('Entwicklung', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '20px', 'position': 'absolute', 'top': '20px', 'left': '20px'}),
+            dcc.Graph(id='satisfaction-trend', config={'displayModeBar': False})
+        ], style={'width': '70%', 'display': 'inline-block', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '40px 10px 10px 10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)', 'position': 'relative'})
+    ], style={'display': 'flex', 'marginTop': '20px'}),
+            
+   html.Div([
+    html.Div([
+        html.H2('Discover Key Topics', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '20px', 'color': 'white', 'marginBottom': '5px'}),
+        html.P('In der Tabelle unten sehen Sie die Hauptthemen aus den Kundenbewertungen. Identifizieren Sie die wichtigsten Anliegen Ihrer Kunden und verfolgen Sie Unterschiede über Standorte / Wettbewerber hinweg.', style={'fontFamily': 'Roboto Condensed', 'fontSize': '14px', 'color': 'white'})
+    ], style={
+        'flex': '1', 
+        'backgroundColor': '#141F52', 
+        'borderRadius': '10px', 
+        'border': '1px solid #ccc', 
+        'padding': '10px', 
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+        'height': 'auto'
+    }),
+
+    html.Div([
+        html.Label('Adjust Threshold Percentage:', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '20px', 'color': 'black', 'marginBottom': '5px'}),
         dcc.Slider(
             id='threshold-slider',
             min=0,
-            max=30,
+            max=20,
             step=1,
             value=10,
             marks={i: f'{i}%' for i in range(0, 31, 5)}
         )
-    ], style={'marginTop': '20px', 'marginBottom': '20px', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}),
-    
+    ], style={
+        'flex': '1', 
+        'backgroundColor': 'white', 
+        'borderRadius': '10px', 
+        'border': '1px solid #ccc', 
+        'padding': '10px', 
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+        'height': 'auto'
+    })
+], style={
+    'display': 'flex', 
+    'alignItems': 'stretch', 
+    'gap': '20px', 
+    'marginTop': '20px'
+}),
+
+
     html.Div([
         dash_table.DataTable(
             id='topic-heatmap',
             style_table={'height': '300px', 'overflowY': 'auto'},
             style_cell={'textAlign': 'left', 'padding': '5px', 'fontFamily': 'Roboto Condensed'},
             style_header={
-                'backgroundColor': 'white',
+                'backgroundColor': '#D9D9D9',
                 'fontWeight': 'bold'
             },
             style_data={
@@ -82,17 +140,48 @@ app.layout = html.Div([
         )
     ], style={'marginTop': '20px', 'marginBottom': '20px', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}),
     
-    html.Div([
-        html.Label('Adjust Rating Threshold:', style={'fontFamily': 'Roboto Condensed'}),
+   html.Div([
+     html.Div([
+        html.Label('Adjust Rating Threshold:', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '20px', 'color': 'white', 'marginBottom': '5px'}),
         dcc.Slider(
             id='rating-threshold-slider',
             min=0.1,
-            max=1.5,
+            max=1.0,
             step=0.1,
-            value=1,
+            value=0.2,
             marks={i: f'{i:.1f}' for i in np.arange(0.1, 1.6, 0.1)}
         )
-    ], style={'marginTop': '75px', 'marginBottom': '20px', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}),
+    ], style={
+        'flex': '1', 
+        'backgroundColor': 'white', 
+        'borderRadius': '10px', 
+        'border': '1px solid #ccc', 
+        'padding': '10px', 
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+        'height': 'auto'
+    }),
+
+    html.Div([
+        html.H2('Understand Review Sentiment', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '20px', 'color': 'white', 'marginBottom': '5px'}),
+        html.P('Erfassen Sie die Konnotation bestimmter Themen. Erfahren Sie ob diese positiv oder negativ von den Kunden bewertet werden.', style={'fontFamily': 'Roboto Condensed', 'fontSize': '14px', 'color': 'white'})      
+    ], style={
+        'flex': '1', 
+        'backgroundColor': '#141F52', 
+        'borderRadius': '10px', 
+        'border': '1px solid #ccc', 
+        'padding': '10px', 
+        'boxShadow': '0 2px 4px rgba(0,0,0,0.1)',
+        'height': 'auto',
+        'color': 'white'
+    }),
+], style={
+    'display': 'flex', 
+    'alignItems': 'stretch', 
+    'gap': '20px', 
+    'marginTop': '20px'
+}),
+
+
 
     html.Div([
         dash_table.DataTable(
@@ -100,7 +189,7 @@ app.layout = html.Div([
             style_table={'height': '300px', 'overflowY': 'auto'},
             style_cell={'textAlign': 'left', 'padding': '5px', 'fontFamily': 'Roboto Condensed'},
             style_header={
-                'backgroundColor': 'white',
+                'backgroundColor': '#D9D9D9',
                 'fontWeight': 'bold'
             },
             style_data={
@@ -113,7 +202,7 @@ app.layout = html.Div([
     
     html.Div([
         html.Div([
-            html.Label('Thema:', style={'fontFamily': 'Roboto Condensed'}),
+            html.Label('Thema:', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '16px'}),
             dcc.Dropdown(
                 id='topic-dropdown',
                 options=[{'label': topic, 'value': topic} for topic in topics],
@@ -123,7 +212,7 @@ app.layout = html.Div([
         ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
-            html.Label('Betrieb:', style={'fontFamily': 'Roboto Condensed'}),
+            html.Label('Betrieb:', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '16px'}),
             dcc.Dropdown(
                 id='standort-dropdown',
                 options=[{'label': name, 'value': name} for name in data['name'].unique()],
@@ -133,17 +222,21 @@ app.layout = html.Div([
         ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
-            html.Label('Zeitspanne', style={'fontFamily': 'Roboto Condensed'}),
+            html.Label('Zeitspanne', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '16px'}),
             dcc.DatePickerRange(
                 id='date-picker-range',
                 start_date=data['date'].min().date(),
                 end_date=data['date'].max().date(),
-                display_format='YYYY-MM-DD'
+                display_format='DD.MM.YYYY',
+                month_format='DD.MM.YYYY',
+                style={'fontSize': '10px', 'fontFamily': 'Roboto Condensed'}  # Adjust the font size and font family here
             )
         ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
+    
+    
 
         html.Div([
-            html.Label('Rating Threshold:', style={'fontFamily': 'Roboto Condensed'}),
+            html.Label('Rating Threshold:', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '16px'}),
             dcc.Slider(
                 id='review-rating-slider',
                 min=1,
@@ -155,7 +248,7 @@ app.layout = html.Div([
         ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
-            html.Label('Suchbegriff:', style={'fontFamily': 'Roboto Condensed'}),
+            html.Label('Suchbegriff:', style={'fontFamily': 'Roboto Condensed', 'fontWeight': 'bold', 'fontSize': '16px'}),
             dcc.Input(
                 id='search-term',
                 type='text',
@@ -170,20 +263,30 @@ app.layout = html.Div([
             style_table={'height': '300px', 'overflowY': 'auto'},
             style_cell={'textAlign': 'left', 'padding': '5px', 'fontFamily': 'Roboto Condensed'},
             style_header={
-                'backgroundColor': 'white',
+                'backgroundColor': 'D9D9D9',
                 'fontWeight': 'bold'
             },
             style_data={
                 'whiteSpace': 'normal',
                 'height': 'auto'
-            }
+            },
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': '#F5F4EF'
+                },
+                {
+                    'if': {'row_index': 'even'},
+                    'backgroundColor': 'white'
+                }
+            ]
         )
     ], style={'marginTop': '20px', 'marginBottom': '20px', 'backgroundColor': 'white', 'borderRadius': '10px', 'border': '1px solid #ccc', 'padding': '10px', 'boxShadow': '0 2px 4px rgba(0,0,0,0.1)'}),
     
-], style={'maxWidth': '1400px', 'margin': '0 auto', 'padding': '20px', 'border': '1px solid #ccc', 'boxShadow': '2px 2px 12px #aaa', 'backgroundColor': '#e0e0e0', 'fontFamily': 'Roboto Condensed'})
+], style={'maxWidth': '1400px', 'margin': '0 auto', 'padding': '20px', 'border': '1px solid #ccc', 'boxShadow': '2px 2px 12px #aaa', 'backgroundColor': '#f7f7f7', 'fontFamily': 'Roboto Condensed'})
 
 @app.callback(
-    [Output('average-satisfaction-gauge', 'figure'),
+    [Output('average-satisfaction-bar', 'figure'),
      Output('respondent-count', 'children'),
      Output('satisfaction-trend', 'figure'),
      Output('topic-heatmap', 'data'),
@@ -193,7 +296,8 @@ app.layout = html.Div([
      Output('average-rating-table', 'columns'),
      Output('average-rating-table', 'style_data_conditional'),
      Output('filtered-reviews-table', 'data'),
-     Output('filtered-reviews-table', 'columns')],
+     Output('filtered-reviews-table', 'columns'),
+     Output('average-rating', 'children')],
     [Input('standort-filter', 'value'),
      Input('threshold-slider', 'value'),
      Input('rating-threshold-slider', 'value'),
@@ -216,25 +320,89 @@ def update_dashboard(selected_standorte, threshold, rating_threshold, selected_t
     # Define the colors list
     colors = ['#b22122', '#141F52', '#1DC9A4', '#C91D42', '#F97A1F', '#1A1A1A']
     
-    # Create the gauge chart for average satisfaction
-    fig_gauge = go.Figure(go.Indicator(
-        domain={'x': [0, 1], 'y': [0, 1]},
-        value=average_satisfaction,
-        mode="gauge+number",
-        title={'text': "CSAT"},
-        gauge={
-            'axis': {'range': [1, 5]},
-            'steps': [
-                {'range': [1, 2], 'color': "#b22122"},
-                {'range': [2, 3], 'color': "grey"},
-                {'range': [3, 5], 'color': "#1DC9A4"}
-            ],
-            'threshold': {
-                'line': {'color': "black", 'width': 4},
-                'thickness': 0.75,
-                'value': average_satisfaction}
-        }
-    ))
+    # Create the bar chart for average satisfaction with trend arrows
+    rating_counts = filtered_data['Rating'].value_counts().sort_index()
+    total_ratings = rating_counts.sum()
+    percentage_shares = (rating_counts / total_ratings) * 100
+    
+    bar_chart = go.Figure(data=[
+        go.Bar(
+            name='Ratings',
+            y=rating_counts.index,
+            x=rating_counts.values,
+            marker_color=['#F4D03F', '#F4D03F', '#F4D03F', '#F4D03F', '#F4D03F'],
+            orientation='h'
+        )
+    ])
+
+    annotations = []
+    for rating, percentage in zip(rating_counts.index, percentage_shares):
+        annotations.append(dict(
+            x=rating_counts[rating] + 300,  # position near the bar
+            y=rating,
+            text=f'{percentage:.0f}%',  # formatted percentage value
+            showarrow=False,
+            font=dict(color='black', size=18, family='Roboto Condensed', )
+        ))
+
+    # Add arrows behind the bars for each rating
+    filtered_data['quarter'] = filtered_data['date'].dt.to_period('Q')
+    quarters_order = pd.period_range(start='2018Q1', end='2024Q2', freq='Q')
+    filtered_data['quarter'] = pd.Categorical(filtered_data['quarter'], categories=quarters_order, ordered=True)
+
+    offset = 600  # Offset to move the arrows to the right
+
+    for rating in rating_counts.index:
+        rating_data = filtered_data[filtered_data['Rating'] == rating].groupby('quarter').size().reindex(quarters_order, fill_value=0)
+        total_reviews = filtered_data.groupby('quarter').size().reindex(quarters_order, fill_value=0)
+        
+        # Calculate the share of each rating
+        rating_share = (rating_data / total_reviews) * 100
+        
+        last_two_quarters_share = rating_share[-2:].mean()
+        previous_two_quarters_share = rating_share[-4:-2].mean()
+        
+        if last_two_quarters_share > previous_two_quarters_share:
+            arrow = "▲"
+            color = "green"
+        else:
+            arrow = "▼"
+            color = "red"
+        
+        bar_chart.add_trace(go.Scatter(
+            x=[rating_counts[rating] + offset],
+            y=[rating],
+            text=[arrow],
+            mode="text",
+            textfont=dict(color=color, size=20),
+            showlegend=False,
+            xaxis='x',
+            yaxis='y',
+            name='',
+        ))
+
+    bar_chart.update_layout(
+        annotations=annotations,
+        xaxis=dict(
+            title='',
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            showticklabels=False
+        ),
+        yaxis=dict(
+            title='',
+            showgrid=False,
+            zeroline=False,
+            showline=False,
+            showticklabels=True  # Keep the tick labels if you want to see the ratings
+        ),
+        showlegend=False,
+        plot_bgcolor='rgba(0,0,0,0)',  # Transparent background
+        paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
+        barmode='overlay',  # Overlay mode to ensure scatter is behind the bars
+        bargap=0.25,
+    )
 
     # Create the line chart for overall satisfaction trend
     traces_line = []
@@ -264,7 +432,6 @@ def update_dashboard(selected_standorte, threshold, rating_threshold, selected_t
     figure_line = {
     'data': traces_line,
     'layout': go.Layout(
-        title='Durchschnittliche Zufriedenheit pro Quartal (Moving Average)',
         yaxis={'title': 'Durchschnittliche Zufriedenheit', 'range': [1, 5]},
         xaxis={'title': 'Quartal'},
         legend=dict(
@@ -298,14 +465,20 @@ def update_dashboard(selected_standorte, threshold, rating_threshold, selected_t
     
     # Create style_data_conditional for conditional formatting
     style_data_conditional = []
-    for row in topic_data:
+    for i, row in enumerate(topic_data):
         total_value = row['Total']
+        row_styles = {
+            'if': {'row_index': i},
+            'backgroundColor': '#F5F4EF' if i % 2 == 1 else 'white'
+        }
+        style_data_conditional.append(row_styles)
         for standort in selected_standorte:
             if row[standort] > total_value + threshold:
                 style_data_conditional.append({
                     'if': {
                         'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
-                        'column_id': standort
+                        'column_id': standort,
+                        'row_index': i
                     },
                     'backgroundColor': 'green',
                     'color': 'white'
@@ -314,7 +487,8 @@ def update_dashboard(selected_standorte, threshold, rating_threshold, selected_t
                 style_data_conditional.append({
                     'if': {
                         'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
-                        'column_id': standort
+                        'column_id': standort,
+                        'row_index': i
                     },
                     'backgroundColor': 'red',
                     'color': 'white'
@@ -340,15 +514,21 @@ def update_dashboard(selected_standorte, threshold, rating_threshold, selected_t
     
     # Create style_data_conditional for conditional formatting for average rating table
     rating_style_data_conditional = []
-    for row in average_rating_data:
+    for i, row in enumerate(average_rating_data):
         total_value = row['Total']
+        row_styles = {
+            'if': {'row_index': i},
+            'backgroundColor': '#F5F4EF' if i % 2 == 1 else 'white'
+        }
+        rating_style_data_conditional.append(row_styles)
         for standort in selected_standorte:
             if row[standort] != 'N/A':
                 if row[standort] > total_value + rating_threshold:
                     rating_style_data_conditional.append({
                         'if': {
                             'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
-                            'column_id': standort
+                            'column_id': standort,
+                            'row_index': i
                         },
                         'backgroundColor': 'green',
                         'color': 'white'
@@ -357,7 +537,8 @@ def update_dashboard(selected_standorte, threshold, rating_threshold, selected_t
                     rating_style_data_conditional.append({
                         'if': {
                             'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
-                            'column_id': standort
+                            'column_id': standort,
+                            'row_index': i
                         },
                         'backgroundColor': 'red',
                         'color': 'white'
@@ -381,8 +562,10 @@ def update_dashboard(selected_standorte, threshold, rating_threshold, selected_t
     # Define the columns for the filtered reviews table
     reviews_columns = [{'name': col, 'id': col} for col in ['date', 'Review', 'Rating', selected_topic]]
     
-    return (fig_gauge, str(respondent_count), figure_line, topic_data, columns, style_data_conditional, 
-            average_rating_data, average_rating_columns, rating_style_data_conditional, reviews_data, reviews_columns)
+    return (bar_chart, str(respondent_count), figure_line, topic_data, columns, style_data_conditional, 
+            average_rating_data, average_rating_columns, rating_style_data_conditional, reviews_data, reviews_columns, 
+            f'Average Rating: {average_satisfaction:.1f}')
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
