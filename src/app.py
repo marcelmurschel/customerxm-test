@@ -105,12 +105,17 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.H3('Discover Key Topics', className='header'),
-            html.P('In der Tabelle unten sehen Sie die Hauptthemen aus den Kundenbewertungen. Identifizieren Sie die wichtigsten Anliegen Ihrer Kunden und verfolgen Sie Unterschiede über Standorte / Wettbewerber hinweg.', className='small-text', style={'color': 'white'})
-        ], className='box_menu', style={'flex': '1'}),
+            html.H3('Discover Key Topics', className='header_manual'),
+            html.P("""Diese Tabelle zeigt die häufigsten Themen in den Kundenbewertungen. 
+                   Vergleichen Sie, wie oft diese Themen bei verschiedenen Unternehmen vorkommen, 
+                   und identifizieren Sie wichtige Themenbereiche.""",  style={'color': 'white', 'fontSize': '18px' })
+        ], className='box_text', style={'flex': '1'}),
 
         html.Div([
             html.H3('Adjust Threshold Percentage:', className='header dark-text'),
+            html.P("""Stellen Sie mit diesem Schieberegler ein, ab welcher Differenz 
+                   in Prozentpunkten die Themen farblich hervorgehoben werden. Passen Sie die Sensibilität an, 
+                   um relevante Unterschiede sichtbar zu machen.""",  style={'color': 'black', 'fontSize': '14px' }),
             dcc.Slider(
                 id='threshold-slider',
                 min=0,
@@ -136,6 +141,9 @@ app.layout = html.Div([
     html.Div([
         html.Div([
             html.H3('Adjust Rating Threshold', className='header'),
+            html.P("""Stellen Sie mit diesem Schieberegler ein, ab welcher Differenz 
+                   in Prozentpunkten die Themen farblich hervorgehoben werden. Passen Sie die Sensibilität an, 
+                   um relevante Unterschiede sichtbar zu machen.""",  style={'color': 'black', 'fontSize': '14px' }),
             dcc.Slider(
                 id='rating-threshold-slider',
                 min=0.1,
@@ -143,13 +151,15 @@ app.layout = html.Div([
                 step=0.1,
                 value=0.2,
                 marks={i: f'{i:.1f}' for i in np.arange(0.1, 1.6, 0.1)}
+                
             )
         ], className='box', style={'flex': '1'}),
 
         html.Div([
-            html.H3('Understand Review Sentiment', className='header'),
-            html.P('Erfassen Sie die Konnotation bestimmter Themen. Erfahren Sie ob diese positiv oder negativ von den Kunden bewertet werden.', className='small-text', style={'color': 'white'})
-        ], className='box_menu', style={'flex': '1'})
+            html.H3('Understand Review Sentiment', className='header_manual'),
+            html.P("""Stellen Sie ein, ab welcher Differenz in den Durchschnittsbewertungen (1 bis 5) die Werte 
+                   farblich hervorgehoben werden. Schon kleine Unterschiede können signifikant sein.""", style={'color': 'white', 'fontSize': '14px' })
+        ], className='box_text', style={'flex': '1'})
     ], className='container'),
 
     html.Div([
@@ -162,6 +172,14 @@ app.layout = html.Div([
             style_data_conditional=[]
         )
     ], className='box', style={'marginTop': '20px', 'marginBottom': '20px'}),
+
+    html.Div([
+        html.H3("Deep Dive - Explore Your Data", className='header_manual', style={'textAlign': 'center',  }),
+        html.P("""Tauchen Sie tief in die Kundenbewertungen ein und analysieren Sie spezifische Feedbacks. 
+               Nutzen Sie die Filter, um nach Themen, Unternehmen, Zeiträumen, Bewertungen und Suchbegriffen zu suchen. 
+               Diese Funktion ermöglicht es Ihnen, detaillierte Einblicke zu gewinnen und gezielt auf Kundenfeedback zu reagieren.""", style={'textAlign': 'center', 'color': '#fff', 'fontSize': '18px' }),
+    ], className='box_text', style={'marginTop': '20px', 'marginBottom': '0px'} ),
+
 
     html.Div([
         html.Div([
@@ -197,14 +215,14 @@ app.layout = html.Div([
         ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
-            html.H3('Rating Threshold:', className='header'),
-            dcc.Slider(
+            html.H3('Rating Range:', className='header'),
+            dcc.RangeSlider(
                 id='review-rating-slider',
                 min=1,
                 max=5,
                 step=1,
-                value=5,
-                marks={i: f'<{i}' for i in range(2, 6)}
+                value=[1, 3],
+                marks={i: f'{i}' for i in range(1, 6)}
             )
         ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
@@ -216,7 +234,7 @@ app.layout = html.Div([
                 placeholder='Suchbegriff eingeben'
             )
         ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'})
-    ], className='box', style={'marginTop': '75px', 'marginBottom': '20px', 'display': 'flex'}),
+    ], className='box', style={'marginTop': '20px', 'marginBottom': '20px', 'display': 'flex'}),
 
     html.Div([
         dash_table.DataTable(
@@ -530,7 +548,8 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         (data['date'] >= pd.to_datetime(start_date)) &
         (data['date'] <= pd.to_datetime(end_date)) &
         (data[selected_topic] == 1) &
-        (data['Rating'] < review_rating)
+        (data['Rating'] >= review_rating[0]) &
+        (data['Rating'] <= review_rating[1])
     ]
 
     if search_term:

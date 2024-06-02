@@ -49,6 +49,14 @@
     margin-top: 0px;
 }
 
+.header_manual {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-weight: bold;
+    font-size: 24px;
+    margin-bottom: 0px;
+    margin-top: 0px;
+}
+
 .box {
     background-color: white;
     border-radius: 10px;
@@ -67,9 +75,17 @@
     text-align: center;
 }
 
-.small-text {
-    font-size: 14px;
+.box_text {
+    background: linear-gradient(145deg, #141F52, #3A4D9F);
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    padding: 22px 20px 0px 0px;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
+
+
 
 .container {
     display: flex;
