@@ -141,9 +141,8 @@ app.layout = html.Div([
     html.Div([
         html.Div([
             html.H3('Adjust Rating Threshold', className='header'),
-            html.P("""Stellen Sie mit diesem Schieberegler ein, ab welcher Differenz 
-                   in Prozentpunkten die Themen farblich hervorgehoben werden. Passen Sie die Sensibilität an, 
-                   um relevante Unterschiede sichtbar zu machen.""",  style={'color': 'black', 'fontSize': '14px' }),
+            html.P("""Stellen Sie ein, ab welcher Differenz in den Durchschnittsbewertungen (1 bis 5) die Werte 
+                   farblich hervorgehoben werden. Schon kleine Unterschiede können signifikant sein.""",  style={'color': 'black', 'fontSize': '14px' }),
             dcc.Slider(
                 id='rating-threshold-slider',
                 min=0.1,
@@ -157,8 +156,9 @@ app.layout = html.Div([
 
         html.Div([
             html.H3('Understand Review Sentiment', className='header_manual'),
-            html.P("""Stellen Sie ein, ab welcher Differenz in den Durchschnittsbewertungen (1 bis 5) die Werte 
-                   farblich hervorgehoben werden. Schon kleine Unterschiede können signifikant sein.""", style={'color': 'white', 'fontSize': '14px' })
+            html.P("""Hier sehen Sie die durchschnittliche Bewertung für jedes Schlüsselthema. 
+                   Erkennen Sie, ob ein Thema positiv oder negativ bewertet wurde, und nutzen Sie diese 
+                   Erkenntnisse zur Identifikation von Stärken und Schwächen.""", style={'color': 'white', 'fontSize': '18px' })
         ], className='box_text', style={'flex': '1'})
     ], className='container'),
 
