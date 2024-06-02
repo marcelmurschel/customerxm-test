@@ -4,10 +4,13 @@ from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
+import random
 
 # Load the dataset
 data = pd.read_csv("google_reviews_test.csv")
 data['date'] = pd.to_datetime(data['date'])
+
+preselected_standort = random.choice(data['name'].unique())
 
 # List of topics
 topics = ['Kundenservice', 'Beratung', 'Freundlichkeit', 'Fahrzeugübergabe', 'Zubehör', 'Werkstattservice', 'Preis-Leistungs-Verhältnis', 'Sauberkeit', 'Zuverlässigkeit', 'Terminvereinbarung', 'Lieferzeit', 'Garantieabwicklung', 'Reparaturqualität', 'Auswahl']
@@ -60,11 +63,11 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.H3('Selektion A auswählen:', className='header'),
+             html.H3('Selektion A auswählen:', className='header'),
             dcc.Dropdown(
                 id='main-standort1-filter',
                 options=[{'label': name, 'value': name} for name in data['name'].unique()],
-                value=[],
+                value=[preselected_standort],  # Preselect one Standort
                 multi=True
             )
         ], className='box', style={'width': '85%'}),
@@ -105,14 +108,14 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.H3('Discover Key Topics', className='header_manual'),
+            html.H3('🗺️ Discover Key Topics', className='header_manual'),
             html.P("""Diese Tabelle zeigt die häufigsten Themen in den Kundenbewertungen. 
                    Vergleichen Sie, wie oft diese Themen bei verschiedenen Unternehmen vorkommen, 
                    und identifizieren Sie wichtige Themenbereiche.""",  style={'color': 'white', 'fontSize': '18px' })
         ], className='box_text', style={'flex': '1'}),
 
         html.Div([
-            html.H3('Adjust Threshold Percentage:', className='header dark-text'),
+            html.H3('Topic Sensitivity Meter', className='header dark-text'),
             html.P("""Stellen Sie mit diesem Schieberegler ein, ab welcher Differenz 
                    in Prozentpunkten die Themen farblich hervorgehoben werden. Passen Sie die Sensibilität an, 
                    um relevante Unterschiede sichtbar zu machen.""",  style={'color': 'black', 'fontSize': '14px' }),
@@ -140,7 +143,7 @@ app.layout = html.Div([
 
     html.Div([
         html.Div([
-            html.H3('Adjust Rating Threshold', className='header'),
+            html.H3('Rating Sensitivity Meter', className='header'),
             html.P("""Stellen Sie ein, ab welcher Differenz in den Durchschnittsbewertungen (1 bis 5) die Werte 
                    farblich hervorgehoben werden. Schon kleine Unterschiede können signifikant sein.""",  style={'color': 'black', 'fontSize': '14px' }),
             dcc.Slider(
@@ -155,7 +158,7 @@ app.layout = html.Div([
         ], className='box', style={'flex': '1'}),
 
         html.Div([
-            html.H3('Understand Review Sentiment', className='header_manual'),
+            html.H3('💡 Understand Review Sentiment', className='header_manual'),
             html.P("""Hier sehen Sie die durchschnittliche Bewertung für jedes Schlüsselthema. 
                    Erkennen Sie, ob ein Thema positiv oder negativ bewertet wurde, und nutzen Sie diese 
                    Erkenntnisse zur Identifikation von Stärken und Schwächen.""", style={'color': 'white', 'fontSize': '18px' })
@@ -174,7 +177,7 @@ app.layout = html.Div([
     ], className='box', style={'marginTop': '20px', 'marginBottom': '20px'}),
 
     html.Div([
-        html.H3("Deep Dive - Explore Your Data", className='header_manual', style={'textAlign': 'center',  }),
+        html.H3("🕵️ Deep Dive - Explore Your Data", className='header_manual', style={'textAlign': 'center',  }),
         html.P("""Tauchen Sie tief in die Kundenbewertungen ein und analysieren Sie spezifische Feedbacks. 
                Nutzen Sie die Filter, um nach Themen, Unternehmen, Zeiträumen, Bewertungen und Suchbegriffen zu suchen. 
                Diese Funktion ermöglicht es Ihnen, detaillierte Einblicke zu gewinnen und gezielt auf Kundenfeedback zu reagieren.""", style={'textAlign': 'center', 'color': '#fff', 'fontSize': '18px' }),
@@ -190,7 +193,7 @@ app.layout = html.Div([
                 value=topics[0],
                 clearable=False
             )
-        ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
+        ], style={'width': '20%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
             html.H3('Betrieb:', className='header'),
@@ -200,10 +203,10 @@ app.layout = html.Div([
                 value=data['name'].unique()[0],
                 clearable=False
             )
-        ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
+        ], style={'width': '20%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
-            html.H3('Zeitspanne', className='header'),
+            html.H3('Zeitspanne:', className='header'),
             dcc.DatePickerRange(
                 id='date-picker-range',
                 start_date=data['date'].min().date(),
@@ -212,7 +215,7 @@ app.layout = html.Div([
                 month_format='DD.MM.YYYY',
                 style={'fontSize': '10px'}
             )
-        ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
+        ], style={'width': '25%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
             html.H3('Rating Range:', className='header'),
@@ -224,7 +227,7 @@ app.layout = html.Div([
                 value=[1, 3],
                 marks={i: f'{i}' for i in range(1, 6)}
             )
-        ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
+        ], style={'width': '15%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'}),
 
         html.Div([
             html.H3('Suchbegriff:', className='header'),
@@ -233,7 +236,7 @@ app.layout = html.Div([
                 type='text',
                 placeholder='Suchbegriff eingeben'
             )
-        ], style={'width': '19%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '0 10px'})
+        ], style={'width': '20%', 'display': 'inline-block', 'verticalAlign': 'top', })
     ], className='box', style={'marginTop': '20px', 'marginBottom': '20px', 'display': 'flex'}),
 
     html.Div([
@@ -337,17 +340,26 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
             range=[1, 5]
         ),
         yaxis=dict(
-            title=''
+            title='',
+            tickfont=dict(size=16),  # Increase the y-axis labels' font size
+            automargin=True,  # Automatically adjust the margins to prevent label overlap
+            ticklabelposition='outside',  # Move the tick labels to the outside of the axis
+            ticks='outside',
+            ticklen=20  # Add extra length to the ticks to create space
         ),
-        margin=dict(l=40, r=20, t=20, b=40),  # Adjust margins to remove the title space
+        margin=dict(l=20, r=20, t=20, b=40),  # Adjust left margin to provide space for y-axis labels
         plot_bgcolor='white',  # Set background color to white
         xaxis_showgrid=False,  # Remove grid lines
         yaxis_showgrid=False   # Remove grid lines
     )
 
+    # Ensure the text on the bars is updated with a larger font size
+    for trace in bar_chart.data:
+        trace.textfont = dict(size=18)
+
     # Calculate the number of respondents
-    respondent_count = len(main_data1) if not main_data1.empty else 0
-    
+    respondent_count = len(filtered_data)
+
     # Create the line chart for overall satisfaction trend
     traces_line = []
     filtered_data['quarter'] = filtered_data['date'].dt.to_period('Q')
@@ -405,32 +417,37 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         ))
 
     figure_line = {
-    'data': traces_line,
-    'layout': go.Layout(
-        font=dict(family='Roboto Condensed, sans-serif', size=14),
-        yaxis={
-            'title': 'Durchschnittliches Rating',
-            'range': [1, 5],
-            'tickmode': 'array',
-            'tickvals': [1, 2, 3, 4, 5]
-        },
-        xaxis={'title': 'Quartal'},
-        legend=dict(
-            orientation="h",  # This makes the legend horizontal
-            x=0.5,            # Position the legend in the center
-            y=1.15,           # Position the legend above the chart
-            xanchor='center', # Anchor the center of the legend box to the x coordinate
-            yanchor='bottom', # Anchor the bottom of the legend box to the y coordinate
-            font=dict(
-                size=15        # Increase the font size of the legend
-            )
-        ),
-        margin=dict(
-            l=60, r=20, t=60, b=60  # Adjust margins to provide space for the y-axis labels and the legend
-        ),
-        
-    )
-}
+        'data': traces_line,
+        'layout': go.Layout(
+            font=dict(family='Roboto Condensed, sans-serif', size=14),
+            yaxis={
+                'title': 'Durchschnittliches Rating',
+                'range': [1, 5],
+                'tickmode': 'array',
+                'tickvals': [1, 2, 3, 4, 5]
+            },
+            xaxis={
+                'title': {
+                    'text': 'Quartal',
+                    'standoff': 30  # Add this line to create space between the x-axis title and the x-ticks labels
+                },
+                'tickangle': 90
+            },
+            legend=dict(
+                orientation="h",  # This makes the legend horizontal
+                x=0.5,            # Position the legend in the center
+                y=1.15,           # Position the legend above the chart
+                xanchor='center', # Anchor the center of the legend box to the x coordinate
+                yanchor='bottom', # Anchor the bottom of the legend box to the y coordinate
+                font=dict(
+                    size=15        # Increase the font size of the legend
+                )
+            ),
+            margin=dict(
+                l=50, r=20, t=60, b=100  # Adjust margins to provide space for the y-axis labels and the legend
+            ),
+        )
+    }
     
     # Create the data for the topic heatmap/datatable
     topic_data = []
@@ -563,6 +580,7 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     
     return (bar_chart, str(respondent_count), figure_line, topic_data, columns, style_data_conditional, 
             average_rating_data, average_rating_columns, rating_style_data_conditional, reviews_data, reviews_columns)
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

@@ -54,7 +54,7 @@
     font-weight: bold;
     font-size: 24px;
     margin-bottom: 0px;
-    margin-top: 0px;
+    margin-top: 5px;
 }
 
 .box {
@@ -79,7 +79,7 @@
     background: linear-gradient(145deg, #141F52, #3A4D9F);
     border-radius: 10px;
     border: 1px solid #ccc;
-    padding: 22px 20px 0px 0px;
+    padding: 20px 20px 20px 20px;
     color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
