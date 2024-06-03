@@ -309,7 +309,7 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         'Selektion A': '#b22122',
         'Selektion B': '#141F52'
     }
-    color_list = ['#1DC9A4', '#C91D42', '#1A1A1A', '#F9C31F', '#E1DFD0']
+    color_list = ['#1DC9A4', '#F97A1F', '#1A1A1A', '#F9C31F', '#E1DFD0']
     if not main_data1.empty:
         average_ratings['Selektion A'] = round(main_data1['Rating'].mean(), 1)
     if not main_data2.empty:
@@ -459,9 +459,10 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         main_count1 = main_data1[topic].sum()
         main_total1 = len(main_data1)
         row['Selektion A'] = round((main_count1 / main_total1 * 100), 1) if main_total1 > 0 else 0
-        main_count2 = main_data2[topic].sum()
-        main_total2 = len(main_data2)
-        row['Selektion B'] = round((main_count2 / main_total2 * 100), 1) if main_total2 > 0 else 0
+        if not main_data2.empty:
+            main_count2 = main_data2[topic].sum()
+            main_total2 = len(main_data2)
+            row['Selektion B'] = round((main_count2 / main_total2 * 100), 1) if main_total2 > 0 else 0
         for standort in competitors:
             count = filtered_data[filtered_data['name'] == standort][topic].sum()
             total = len(filtered_data[filtered_data['name'] == standort])
@@ -469,7 +470,10 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         topic_data.append(row)
     
     # Define the columns for the DataTable
-    columns = [{'name': 'Topic', 'id': 'Topic'}, {'name': 'Total', 'id': 'Total'}, {'name': 'Selektion A', 'id': 'Selektion A'}, {'name': 'Selektion B', 'id': 'Selektion B'}] + [{'name': name, 'id': name} for name in competitors]
+    columns = [{'name': 'Topic', 'id': 'Topic'}, {'name': 'Total', 'id': 'Total'}, {'name': 'Selektion A', 'id': 'Selektion A'}]
+    if not main_data2.empty:
+        columns.append({'name': 'Selektion B', 'id': 'Selektion B'})
+    columns += [{'name': name, 'id': name} for name in competitors]
     
     # Sort topic_data by 'Total' column in descending order
     topic_data = sorted(topic_data, key=lambda x: x['Total'], reverse=True)
@@ -484,26 +488,27 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         }
         style_data_conditional.append(row_styles)
         for standort in competitors + ['Selektion A', 'Selektion B']:
-            if row[standort] > total_value + threshold:
-                style_data_conditional.append({
-                    'if': {
-                        'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
-                        'column_id': standort,
-                        'row_index': i
-                    },
-                    'backgroundColor': 'green',
-                    'color': 'white'
-                })
-            elif row[standort] < total_value - threshold:
-                style_data_conditional.append({
-                    'if': {
-                        'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
-                        'column_id': standort,
-                        'row_index': i
-                    },
-                    'backgroundColor': 'red',
-                    'color': 'white'
-                })
+            if standort in row:
+                if row[standort] > total_value + threshold:
+                    style_data_conditional.append({
+                        'if': {
+                            'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
+                            'column_id': standort,
+                            'row_index': i
+                        },
+                        'backgroundColor': 'green',
+                        'color': 'white'
+                    })
+                elif row[standort] < total_value - threshold:
+                    style_data_conditional.append({
+                        'if': {
+                            'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
+                            'column_id': standort,
+                            'row_index': i
+                        },
+                        'backgroundColor': 'red',
+                        'color': 'white'
+                    })
 
     # Calculate the average rating per topic and location
     average_rating_data = []
@@ -513,8 +518,9 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         row['Total'] = round(total_avg_rating, 1) if not np.isnan(total_avg_rating) else 'N/A'
         main_avg_rating1 = main_data1[main_data1[topic] == 1]['Rating'].mean()
         row['Selektion A'] = round(main_avg_rating1, 1) if not np.isnan(main_avg_rating1) else 'N/A'
-        main_avg_rating2 = main_data2[main_data2[topic] == 1]['Rating'].mean()
-        row['Selektion B'] = round(main_avg_rating2, 1) if not np.isnan(main_avg_rating2) else 'N/A'
+        if not main_data2.empty:
+            main_avg_rating2 = main_data2[main_data2[topic] == 1]['Rating'].mean()
+            row['Selektion B'] = round(main_avg_rating2, 1) if not np.isnan(main_avg_rating2) else 'N/A'
         for standort in competitors:
             filtered_reviews = filtered_data[(filtered_data['name'] == standort) & (filtered_data[topic] == 1)]
             avg_rating = filtered_reviews['Rating'].mean()
@@ -522,7 +528,10 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         average_rating_data.append(row)
     
     # Define the columns for the average rating DataTable
-    average_rating_columns = [{'name': 'Topic', 'id': 'Topic'}, {'name': 'Total', 'id': 'Total'}, {'name': 'Selektion A', 'id': 'Selektion A'}, {'name': 'Selektion B', 'id': 'Selektion B'}] + [{'name': name, 'id': name} for name in competitors]
+    average_rating_columns = [{'name': 'Topic', 'id': 'Topic'}, {'name': 'Total', 'id': 'Total'}, {'name': 'Selektion A', 'id': 'Selektion A'}]
+    if not main_data2.empty:
+        average_rating_columns.append({'name': 'Selektion B', 'id': 'Selektion B'})
+    average_rating_columns += [{'name': name, 'id': name} for name in competitors]
     
     # Sort average_rating_data by 'Total' column in descending order
     average_rating_data = sorted(average_rating_data, key=lambda x: x['Total'] if x['Total'] != 'N/A' else float('-inf'), reverse=True)
@@ -537,7 +546,7 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         }
         rating_style_data_conditional.append(row_styles)
         for standort in competitors + ['Selektion A', 'Selektion B']:
-            if row[standort] != 'N/A':
+            if standort in row and row[standort] != 'N/A':
                 if row[standort] > total_value + rating_threshold:
                     rating_style_data_conditional.append({
                         'if': {
@@ -580,6 +589,7 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     
     return (bar_chart, str(respondent_count), figure_line, topic_data, columns, style_data_conditional, 
             average_rating_data, average_rating_columns, rating_style_data_conditional, reviews_data, reviews_columns)
+
 
 
 if __name__ == '__main__':
