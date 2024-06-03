@@ -51,7 +51,7 @@ app.layout = html.Div([
         ], className='box_menu', style={'width': '25%',}),
         
         html.Div([
-            html.H3('ChatWithYourFeedback', className='header_menu')
+            html.H3('#ChatWithYourFeedback', className='header_menu')
         ], className='box_menu', style={'width': '25%', }),
 
         html.Div([
@@ -244,7 +244,7 @@ app.layout = html.Div([
             id='filtered-reviews-table',
             style_table={'height': '300px', 'overflowY': 'auto'},
             style_cell={'textAlign': 'left', 'padding': '5px', 'font-family': 'Roboto Condensed, sans-serif'},
-            style_header={'backgroundColor': 'D9D9D9', 'fontWeight': 'bold', 'font-family': 'Roboto Condensed, sans-serif'},
+            style_header={'backgroundColor': '#D9D9D9', 'fontWeight': 'bold', 'font-family': 'Roboto Condensed, sans-serif'},
             style_data={'whiteSpace': 'normal', 'height': 'auto'},
             style_data_conditional=[
                 {'if': {'row_index': 'odd'}, 'backgroundColor': '#F5F4EF'},
@@ -261,9 +261,11 @@ app.layout = html.Div([
      Output('topic-heatmap', 'data'),
      Output('topic-heatmap', 'columns'),
      Output('topic-heatmap', 'style_data_conditional'),
+     Output('topic-heatmap', 'tooltip_data'),
      Output('average-rating-table', 'data'),
      Output('average-rating-table', 'columns'),
      Output('average-rating-table', 'style_data_conditional'),
+     Output('average-rating-table', 'tooltip_data'),
      Output('filtered-reviews-table', 'data'),
      Output('filtered-reviews-table', 'columns')],
     [Input('main-standort1-filter', 'value'),
@@ -451,23 +453,30 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     
     # Create the data for the topic heatmap/datatable
     topic_data = []
+    topic_tooltip_data = []
     for topic in topics:
         row = {'Topic': topic}
+        tooltip_row = {'Topic': topic}
         total_count = filtered_data[topic].sum()
         overall_total = len(filtered_data)
         row['Total'] = round((total_count / overall_total * 100), 1) if overall_total > 0 else 0
+        tooltip_row['Total'] = f"Basiert auf {overall_total} Freitexten."
         main_count1 = main_data1[topic].sum()
         main_total1 = len(main_data1)
         row['Selektion A'] = round((main_count1 / main_total1 * 100), 1) if main_total1 > 0 else 0
+        tooltip_row['Selektion A'] = f"Basiert auf {main_total1} Freitexten."
         if not main_data2.empty:
             main_count2 = main_data2[topic].sum()
             main_total2 = len(main_data2)
             row['Selektion B'] = round((main_count2 / main_total2 * 100), 1) if main_total2 > 0 else 0
+            tooltip_row['Selektion B'] = f"Basiert auf {main_total2} Freitexten."
         for standort in competitors:
             count = filtered_data[filtered_data['name'] == standort][topic].sum()
             total = len(filtered_data[filtered_data['name'] == standort])
             row[standort] = round((count / total * 100), 1) if total > 0 else 0
+            tooltip_row[standort] = f"Basiert auf {total} Freitexten."
         topic_data.append(row)
+        topic_tooltip_data.append(tooltip_row)
     
     # Define the columns for the DataTable
     columns = [{'name': 'Topic', 'id': 'Topic'}, {'name': 'Total', 'id': 'Total'}, {'name': 'Selektion A', 'id': 'Selektion A'}]
@@ -477,6 +486,7 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     
     # Sort topic_data by 'Total' column in descending order
     topic_data = sorted(topic_data, key=lambda x: x['Total'], reverse=True)
+    topic_tooltip_data = sorted(topic_tooltip_data, key=lambda x: x['Total'], reverse=True)
     
     # Create style_data_conditional for conditional formatting
     style_data_conditional = []
@@ -512,20 +522,31 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
 
     # Calculate the average rating per topic and location
     average_rating_data = []
+    average_rating_tooltip_data = []
     for topic in topics:
         row = {'Topic': topic}
+        tooltip_row = {'Topic': topic}
         total_avg_rating = filtered_data[filtered_data[topic] == 1]['Rating'].mean()
+        total_count = len(filtered_data[filtered_data[topic] == 1])
         row['Total'] = round(total_avg_rating, 1) if not np.isnan(total_avg_rating) else 'N/A'
+        tooltip_row['Total'] = f"Basiert auf {total_count} Freitexten."
         main_avg_rating1 = main_data1[main_data1[topic] == 1]['Rating'].mean()
+        main_count1 = len(main_data1[main_data1[topic] == 1])
         row['Selektion A'] = round(main_avg_rating1, 1) if not np.isnan(main_avg_rating1) else 'N/A'
+        tooltip_row['Selektion A'] = f"Basiert auf {main_count1} Freitexten."
         if not main_data2.empty:
             main_avg_rating2 = main_data2[main_data2[topic] == 1]['Rating'].mean()
+            main_count2 = len(main_data2[main_data2[topic] == 1])
             row['Selektion B'] = round(main_avg_rating2, 1) if not np.isnan(main_avg_rating2) else 'N/A'
+            tooltip_row['Selektion B'] = f"Basiert auf {main_count2} Freitexten."
         for standort in competitors:
             filtered_reviews = filtered_data[(filtered_data['name'] == standort) & (filtered_data[topic] == 1)]
             avg_rating = filtered_reviews['Rating'].mean()
+            count = len(filtered_reviews)
             row[standort] = round(avg_rating, 1) if not np.isnan(avg_rating) else 'N/A'
+            tooltip_row[standort] = f"Basiert auf {count} Freitexten."
         average_rating_data.append(row)
+        average_rating_tooltip_data.append(tooltip_row)
     
     # Define the columns for the average rating DataTable
     average_rating_columns = [{'name': 'Topic', 'id': 'Topic'}, {'name': 'Total', 'id': 'Total'}, {'name': 'Selektion A', 'id': 'Selektion A'}]
@@ -533,8 +554,10 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         average_rating_columns.append({'name': 'Selektion B', 'id': 'Selektion B'})
     average_rating_columns += [{'name': name, 'id': name} for name in competitors]
     
-    # Sort average_rating_data by 'Total' column in descending order
-    average_rating_data = sorted(average_rating_data, key=lambda x: x['Total'] if x['Total'] != 'N/A' else float('-inf'), reverse=True)
+    # Ensure that average_rating_data follows the same order as topic_data
+    topic_order = [row['Topic'] for row in topic_data]
+    average_rating_data = sorted(average_rating_data, key=lambda x: topic_order.index(x['Topic']))
+    average_rating_tooltip_data = sorted(average_rating_tooltip_data, key=lambda x: topic_order.index(x['Topic']))
     
     # Create style_data_conditional for conditional formatting for average rating table
     rating_style_data_conditional = []
@@ -587,10 +610,8 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     # Define the columns for the filtered reviews table
     reviews_columns = [{'name': col, 'id': col} for col in ['date', 'Review', 'Rating', selected_topic]]
     
-    return (bar_chart, str(respondent_count), figure_line, topic_data, columns, style_data_conditional, 
-            average_rating_data, average_rating_columns, rating_style_data_conditional, reviews_data, reviews_columns)
-
-
+    return (bar_chart, str(respondent_count), figure_line, topic_data, columns, style_data_conditional, topic_tooltip_data, 
+            average_rating_data, average_rating_columns, rating_style_data_conditional, average_rating_tooltip_data, reviews_data, reviews_columns)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
