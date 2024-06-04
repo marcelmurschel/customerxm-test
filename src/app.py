@@ -5,9 +5,17 @@ import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
 import random
+from openai import OpenAI
+from openai.types.beta.assistant_stream_event import ThreadMessageDelta
+from openai.types.beta.threads.text_delta_block import TextDeltaBlock
+from dash.dependencies import Input, Output, State
+
+
+# Initialize the OpenAI client and assistant
+ASSISTANT_ID = 'asst_KSTLeF177cgnytEsMq5skwkl'
 
 # Load the dataset
-data = pd.read_csv("google_reviews_test.csv")
+data = pd.read_csv("google_reviews_data.csv")
 data['date'] = pd.to_datetime(data['date'])
 
 preselected_standort = random.choice(data['name'].unique())
@@ -165,7 +173,7 @@ app.layout = html.Div([
         ], className='box_text', style={'flex': '1'})
     ], className='container'),
 
-    html.Div([
+html.Div([
         dash_table.DataTable(
             id='average-rating-table',
             style_table={'height': '300px', 'overflowY': 'auto'},
@@ -173,8 +181,10 @@ app.layout = html.Div([
             style_header={'backgroundColor': '#D9D9D9', 'fontWeight': 'bold', 'font-family': 'Roboto Condensed, sans-serif'},
             style_data={'whiteSpace': 'normal', 'height': 'auto'},
             style_data_conditional=[]
-        )
+        ),
+        html.Div(id='asterisk-explanation', style={'fontSize': '12px', 'color': 'grey', 'marginTop': '10px'})
     ], className='box', style={'marginTop': '20px', 'marginBottom': '20px'}),
+
 
     html.Div([
         html.H3("🕵️ Deep Dive - Explore Your Data", className='header_manual', style={'textAlign': 'center',  }),
@@ -251,8 +261,106 @@ app.layout = html.Div([
                 {'if': {'row_index': 'even'}, 'backgroundColor': 'white'}
             ]
         )
-    ], className='box', style={'marginTop': '20px', 'marginBottom': '20px'})
+    ], className='box', style={'marginTop': '20px', 'marginBottom': '20px'}),
+
+
+
+html.Div([
+        html.H3("💬 ChatWithYourFeedback", className='header_manual', style={'textAlign': 'center'}),
+        html.P("""Fragen Sie den Chatbot z. B. >> Bitte schaue dir die 1-Sterne Bewertungen von Freistaat Caravaning an,
+               die das Thema Freundlichkeit aufgreifen. Welchen Themen tauchen darin auf? <<""", style={'textAlign': 'center', 'fontSize': '16px', 'marginBottom': '20px'}),
+        dcc.Input(id='input-text', type='text', value='', placeholder='Was möchte Sie erfahren?', style={'width': '80%', 'height': '50px', 'fontSize': '18px', 'paddingLeft': '10px', 'fontFamily': 'Roboto Condensed'}),
+        html.Button(id='submit-button', n_clicks=0, children='Submit', style={'fontSize': '18px', 'fontFamily': 'Roboto Condensed', 'marginRight': '20px', 'padding': '10px 20px'}),
+        dcc.Loading(
+            id="loading-indicator",
+            type="default",
+            children=html.Div(id='chat-history', style={'whiteSpace': 'pre-line', 'marginTop': '20px'})
+        )
+    ], className='box_text', style={'marginTop': '20px', 'marginBottom': '20px', 'paddingLeft': '70px', 'paddingRight': '70px'}),
+
+    html.Div([
+        html.H3("OpenAI API Key", className='header_manual', style={'textAlign': 'center'}),
+        dcc.Input(id='openai-api-key', type='password', placeholder='Enter your OpenAI API Key', style={'width': '80%', 'height': '50px', 'fontSize': '18px', 'paddingLeft': '10px', 'fontFamily': 'Roboto Condensed'}),
+    ], className='box_text', style={'marginTop': '20px', 'marginBottom': '20px', 'paddingLeft': '70px', 'paddingRight': '70px'})
+    
 ], className='wrapper')
+
+
+chat_history = []
+
+@app.callback(
+    Output('chat-history', 'children'),
+    Input('submit-button', 'n_clicks'),
+    State('input-text', 'value'),
+    State('chat-history', 'children'),
+    State('openai-api-key', 'value')
+)
+def update_chat(n_clicks, user_query, history, api_key):
+    global chat_history
+    if n_clicks > 0 and user_query and api_key:
+        client = OpenAI(api_key=api_key)
+        assistant = client.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
+
+        # Append user message to chat history
+        chat_history.append({"role": "user", "content": user_query})
+
+        # Create a new thread if it does not exist
+        if 'thread_id' not in app.server.__dict__:
+            thread = client.beta.threads.create()
+            app.server.__dict__['thread_id'] = thread.id
+
+        thread_id = app.server.__dict__['thread_id']
+
+        # Check if a run is active and handle it
+        active_run = None
+        for run in client.beta.threads.runs.list(thread_id=thread_id):
+            if run.status == "running":
+                active_run = run
+                break
+
+        if active_run:
+            # Wait for the active run to complete
+            for event in client.beta.threads.runs.iterate(thread_id=thread_id, run_id=active_run.id):
+                if isinstance(event, ThreadMessageDelta) and event.data.is_completed:
+                    break
+
+        # Add user query to the thread
+        client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=user_query
+        )
+
+        # Stream the assistant's reply
+        stream = client.beta.threads.runs.create(
+            thread_id=thread_id,
+            assistant_id=ASSISTANT_ID,
+            stream=True
+        )
+
+        assistant_reply = ""
+        for event in stream:
+            if isinstance(event, ThreadMessageDelta):
+                if isinstance(event.data.delta.content[0], TextDeltaBlock):
+                    assistant_reply += event.data.delta.content[0].text.value
+
+        # Append assistant message to chat history
+        chat_history.append({"role": "assistant", "content": assistant_reply})
+
+        # Update chat history display
+        history_elements = []
+        for msg in chat_history:
+            if msg['role'] == 'user':
+                history_elements.append(
+                    html.Div(msg['content'], style={'backgroundColor': '#D3D3D3', 'padding': '10px', 'borderRadius': '10px', 'marginBottom': '10px', 'fontSize': '18px', 'color': 'black', 'textAlign': 'left', 'marginRight': '10%'})
+                )
+            else:
+                history_elements.append(
+                    html.Div(msg['content'], style={'backgroundColor': 'white', 'color': 'black', 'padding': '10px', 'borderRadius': '10px', 'marginBottom': '10px', 'fontSize': '18px', 'textAlign': 'left', 'marginLeft': '10%'})
+                )
+        return history_elements
+    return history
+
 
 @app.callback(
     [Output('average-satisfaction-bar', 'figure'),
@@ -267,7 +375,8 @@ app.layout = html.Div([
      Output('average-rating-table', 'style_data_conditional'),
      Output('average-rating-table', 'tooltip_data'),
      Output('filtered-reviews-table', 'data'),
-     Output('filtered-reviews-table', 'columns')],
+     Output('filtered-reviews-table', 'columns'),
+     Output('asterisk-explanation', 'children')],
     [Input('main-standort1-filter', 'value'),
      Input('main-standort2-filter', 'value'),
      Input('competitor-filter', 'value'),
@@ -523,27 +632,39 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     # Calculate the average rating per topic and location
     average_rating_data = []
     average_rating_tooltip_data = []
+    has_asterisk = False
     for topic in topics:
         row = {'Topic': topic}
         tooltip_row = {'Topic': topic}
         total_avg_rating = filtered_data[filtered_data[topic] == 1]['Rating'].mean()
         total_count = len(filtered_data[filtered_data[topic] == 1])
-        row['Total'] = round(total_avg_rating, 1) if not np.isnan(total_avg_rating) else 'N/A'
+        row['Total'] = str(round(total_avg_rating, 1)) if not np.isnan(total_avg_rating) else 'N/A'
         tooltip_row['Total'] = f"Basiert auf {total_count} Freitexten."
         main_avg_rating1 = main_data1[main_data1[topic] == 1]['Rating'].mean()
         main_count1 = len(main_data1[main_data1[topic] == 1])
-        row['Selektion A'] = round(main_avg_rating1, 1) if not np.isnan(main_avg_rating1) else 'N/A'
+        row['Selektion A'] = str(round(main_avg_rating1, 1)) if not np.isnan(main_avg_rating1) else 'N/A'
+        if main_count1 < 15 and main_count1 > 0:
+            row['Selektion A'] += ' *'
+            has_asterisk = True
         tooltip_row['Selektion A'] = f"Basiert auf {main_count1} Freitexten."
         if not main_data2.empty:
             main_avg_rating2 = main_data2[main_data2[topic] == 1]['Rating'].mean()
             main_count2 = len(main_data2[main_data2[topic] == 1])
-            row['Selektion B'] = round(main_avg_rating2, 1) if not np.isnan(main_avg_rating2) else 'N/A'
+            row['Selektion B'] = str(round(main_avg_rating2, 1)) if not np.isnan(main_avg_rating2) else 'N/A'
+            if main_count2 < 15 and main_count2 > 0:
+                row['Selektion B'] += ' *'
+                has_asterisk = True
             tooltip_row['Selektion B'] = f"Basiert auf {main_count2} Freitexten."
         for standort in competitors:
             filtered_reviews = filtered_data[(filtered_data['name'] == standort) & (filtered_data[topic] == 1)]
             avg_rating = filtered_reviews['Rating'].mean()
             count = len(filtered_reviews)
-            row[standort] = round(avg_rating, 1) if not np.isnan(avg_rating) else 'N/A'
+            if not np.isnan(avg_rating):
+                row[standort] = str(round(avg_rating, 1)) + (' *' if count < 15 and count > 0 else '')
+                if count < 15 and count > 0:
+                    has_asterisk = True
+            else:
+                row[standort] = 'N/A'
             tooltip_row[standort] = f"Basiert auf {count} Freitexten."
         average_rating_data.append(row)
         average_rating_tooltip_data.append(tooltip_row)
@@ -553,12 +674,12 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     if not main_data2.empty:
         average_rating_columns.append({'name': 'Selektion B', 'id': 'Selektion B'})
     average_rating_columns += [{'name': name, 'id': name} for name in competitors]
-    
+
     # Ensure that average_rating_data follows the same order as topic_data
     topic_order = [row['Topic'] for row in topic_data]
     average_rating_data = sorted(average_rating_data, key=lambda x: topic_order.index(x['Topic']))
     average_rating_tooltip_data = sorted(average_rating_tooltip_data, key=lambda x: topic_order.index(x['Topic']))
-    
+
     # Create style_data_conditional for conditional formatting for average rating table
     rating_style_data_conditional = []
     for i, row in enumerate(average_rating_data):
@@ -570,20 +691,35 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
         rating_style_data_conditional.append(row_styles)
         for standort in competitors + ['Selektion A', 'Selektion B']:
             if standort in row and row[standort] != 'N/A':
-                if row[standort] > total_value + rating_threshold:
+                # Check if value contains an asterisk
+                value_with_star = row[standort]
+                if ' *' in value_with_star:
+                    # Remove the asterisk for comparison and extract the numeric part
+                    value = float(value_with_star.replace(' *', ''))
                     rating_style_data_conditional.append({
                         'if': {
-                            'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
+                            'filter_query': '{{{}}} = "{}"'.format(standort, value_with_star),
+                            'column_id': standort,
+                            'row_index': i
+                        },
+                        'color': 'grey'
+                    })
+                else:
+                    value = float(value_with_star)
+                if value > float(total_value) + rating_threshold:
+                    rating_style_data_conditional.append({
+                        'if': {
+                            'filter_query': '{{{}}} = "{}"'.format(standort, value_with_star),
                             'column_id': standort,
                             'row_index': i
                         },
                         'backgroundColor': 'green',
                         'color': 'white'
                     })
-                elif row[standort] < total_value - rating_threshold:
+                elif value < float(total_value) - rating_threshold:
                     rating_style_data_conditional.append({
                         'if': {
-                            'filter_query': '{{{}}} = {}'.format(standort, row[standort]),
+                            'filter_query': '{{{}}} = "{}"'.format(standort, value_with_star),
                             'column_id': standort,
                             'row_index': i
                         },
@@ -610,8 +746,10 @@ def update_dashboard(main_standort1, main_standort2, competitors, threshold, rat
     # Define the columns for the filtered reviews table
     reviews_columns = [{'name': col, 'id': col} for col in ['date', 'Review', 'Rating', selected_topic]]
     
+    asterisk_explanation = "* bedeutet, dass diese Werte auf kleinen Basen beruhen." if has_asterisk else ""
+    
     return (bar_chart, str(respondent_count), figure_line, topic_data, columns, style_data_conditional, topic_tooltip_data, 
-            average_rating_data, average_rating_columns, rating_style_data_conditional, average_rating_tooltip_data, reviews_data, reviews_columns)
+            average_rating_data, average_rating_columns, rating_style_data_conditional, average_rating_tooltip_data, reviews_data, reviews_columns, asterisk_explanation)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
